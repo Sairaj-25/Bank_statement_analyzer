@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] } } }
+      };
+    </script>
+  </head>
+
+  <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-white sm:text-3xl">Financial Dashboard</h1>
+          <p class="mt-1 text-sm text-gray-400">Visual breakdown of your bank statement.</p>
+        </div>
+        <div class="flex gap-3">
+          <a href="/api/v1/download/{{ task_id }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm font-medium text-gray-200 shadow transition hover:bg-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            Excel
+          </a>
+          <a href="/" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:bg-blue-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            New Upload
+          </a>
+        </div>
+      </header>
+
+      <!-- Loading State -->
+      <div id="loading" class="flex h-64 items-center justify-center rounded-xl border border-gray-800 bg-gray-900">
+        <div class="flex flex-col items-center gap-3">
+          <svg class="h-8 w-8 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+          <p class="text-sm text-gray-400">Fetching analysis data...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="hidden rounded-xl border border-red-800 bg-red-950/30 p-6 text-center">
+        <p class="text-red-400">Failed to load dashboard data. The task may have expired.</p>
+        <a href="/" class="mt-4 inline-block text-sm text-blue-400 underline">Go Back</a>
+      </div>
+
+      <!-- Charts Container -->
+      <div id="charts-container" class="hidden grid gap-6 lg:grid-cols-2">
+        
+        <!-- Pie Chart Card -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+          <h3 class="mb-4 text-lg font-semibold text-white">Category Spending</h3>
+          <div class="relative h-72 w-full">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Line Chart Card -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+          <h3 class="mb-4 text-lg font-semibold text-white">Monthly Cash Flow Trend</h3>
+          <div class="relative h-72 w-full">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Bar Chart Card (Full Width) -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg lg:col-span-2">
+          <h3 class="mb-4 text-lg font-semibold text-white">Top 10 Expenses</h3>
+          <div class="relative h-80 w-full">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const taskId = "{{ task_id }}";
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error-state');
+      const chartsEl = document.getElementById('charts-container');
+
+      // Fetch JSON data for Charts
+      async function loadDashboard() {
+        try {
+          const res = await fetch(`/api/v1/dashboard/${taskId}`);
+          if (!res.ok) throw new Error('Failed to fetch');
+          
+          const data = await res.json();
+          loadingEl.classList.add('hidden');
+          chartsEl.classList.remove('hidden');
+          renderCharts(data);
+          
+        } catch (err) {
+          loadingEl.classList.add('hidden');
+          errorEl.classList.remove('hidden');
+        }
+      }
+
+      function renderCharts(data) {
+        // Global Chart Defaults for Dark Theme
+        Chart.defaults.color = '#9CA3AF';
+        Chart.defaults.borderColor = '#1F2937';
+
+        // 1. PIE CHART
+        new Chart(document.getElementById('pieChart'), {
+          type: 'doughnut',
+          data: {
+            labels: data.pie_chart.map(c => c.category),
+            datasets: [{
+              data: data.pie_chart.map(c => c.total_amount),
+              backgroundColor: ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1']
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 2. LINE CHART
+        new Chart(document.getElementById('lineChart'), {
+          type: 'line',
+          data: {
+            labels: data.line_chart.map(m => m.month),
+            datasets: [
+              {
+                label: 'Income',
+                data: data.line_chart.map(m => m.total_income),
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.3
+              },
+              {
+                label: 'Expenses',
+                data: data.line_chart.map(m => m.total_expenses),
+                borderColor: '#EF4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                fill: true,
+                tension: 0.3
+              }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        // 3. BAR CHART
+        const barData = data.bar_chart.map(e => ({
+          // Truncate long descriptions for cleaner x-axis
+          label: e.description.length > 20 ? e.description.substring(0, 20) + '...' : e.description,
+          amount: e.debit
+        })).reverse(); // Reverse so highest is at the top
+
+        new Chart(document.getElementById('barChart'), {
+          type: 'bar',
+          data: {
+            labels: barData.map(e => e.label),
+            datasets: [{
+              label: 'Amount ($)',
+              data: barData.map(e => e.amount),
+              backgroundColor: '#3B82F6',
+              borderRadius: 4
+            }]
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            indexAxis: 'y', // Makes it a horizontal bar chart which is better for long text labels
+            scales: { x: { beginAtZero: true } } 
+          }
+        });
+      }
+
+      loadDashboard();
+    </script>
+  </body>
+</html>
