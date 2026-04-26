@@ -1,13 +1,17 @@
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Dict, Any, Optional
+from pydantic.alias_generators import to_camel
 from datetime import datetime
 import enum
 
+# --- Enums ---
 class FileType(str, enum.Enum):
     PDF = "pdf"
     CSV = "csv"
 
+# --- Core Data Models ---
 class Transaction(BaseModel):
+    """Represents a single normalized bank transaction."""
     date: datetime
     description: str
     debit: Optional[float] = 0.0
