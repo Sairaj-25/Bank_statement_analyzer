@@ -15,6 +15,7 @@
 
   <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      
       <!-- Header -->
       <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -24,7 +25,7 @@
         <div class="flex gap-3">
           <a href="/api/v1/download/{{ task_id }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm font-medium text-gray-200 shadow transition hover:bg-gray-800">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            Excel
+            Download Excel
           </a>
           <a href="/" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:bg-blue-700">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
@@ -37,7 +38,7 @@
       <div id="loading" class="flex h-64 items-center justify-center rounded-xl border border-gray-800 bg-gray-900">
         <div class="flex flex-col items-center gap-3">
           <svg class="h-8 w-8 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-          <p class="text-sm text-gray-400">Fetching analysis data...</p>
+          <p class="text-sm text-gray-400">Crunching the numbers...</p>
         </div>
       </div>
 
@@ -47,31 +48,69 @@
         <a href="/" class="mt-4 inline-block text-sm text-blue-400 underline">Go Back</a>
       </div>
 
-      <!-- Charts Container -->
-      <div id="charts-container" class="hidden grid gap-6 lg:grid-cols-2">
+      <!-- Main Dashboard Content -->
+      <div id="charts-container" class="hidden space-y-6">
         
-        <!-- Pie Chart Card -->
-        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-          <h3 class="mb-4 text-lg font-semibold text-white">Category Spending</h3>
-          <div class="relative h-72 w-full">
-            <canvas id="pieChart"></canvas>
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-4">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Total Expenses</p>
+            <p id="total-expenses" class="mt-1 text-2xl font-bold text-red-400">$0.00</p>
+          </div>
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-4">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Total Income</p>
+            <p id="total-income" class="mt-1 text-2xl font-bold text-green-400">$0.00</p>
+          </div>
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-4">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Savings Rate</p>
+            <p id="savings-rate" class="mt-1 text-2xl font-bold text-blue-400">0%</p>
+          </div>
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-4">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Health Score</p>
+            <p id="health-score" class="mt-1 text-2xl font-bold text-white">0 <span class="text-sm text-gray-500">/100</span></p>
           </div>
         </div>
 
-        <!-- Line Chart Card -->
-        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-          <h3 class="mb-4 text-lg font-semibold text-white">Monthly Cash Flow Trend</h3>
-          <div class="relative h-72 w-full">
-            <canvas id="lineChart"></canvas>
+        <!-- Charts Grid -->
+        <div class="grid gap-6 lg:grid-cols-2">
+          
+          <!-- Pie Chart Card -->
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+            <h3 class="mb-4 text-lg font-semibold text-white">Category Spending</h3>
+            <div class="relative h-72 w-full">
+              <canvas id="pieChart"></canvas>
+            </div>
           </div>
+
+          <!-- Line Chart Card -->
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+            <h3 class="mb-4 text-lg font-semibold text-white">Monthly Cash Flow Trend</h3>
+            <div class="relative h-72 w-full">
+              <canvas id="lineChart"></canvas>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Bar Chart Card (Full Width) -->
-        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg lg:col-span-2">
-          <h3 class="mb-4 text-lg font-semibold text-white">Top 10 Expenses</h3>
-          <div class="relative h-80 w-full">
-            <canvas id="barChart"></canvas>
+        <!-- Full Width Charts -->
+        <div class="grid gap-6 lg:grid-cols-2">
+            
+          <!-- Top 10 Expenses -->
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+            <h3 class="mb-4 text-lg font-semibold text-white">Top 10 Individual Expenses</h3>
+            <div class="relative h-80 w-full">
+              <canvas id="barChart"></canvas>
+            </div>
           </div>
+
+          <!-- Top Merchants -->
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+            <h3 class="mb-4 text-lg font-semibold text-white">Top 5 Merchants by Spend</h3>
+            <div class="relative h-80 w-full">
+              <canvas id="merchantChart"></canvas>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -83,7 +122,9 @@
       const errorEl = document.getElementById('error-state');
       const chartsEl = document.getElementById('charts-container');
 
-      // Fetch JSON data for Charts
+      // Helper to format currency
+      const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
       async function loadDashboard() {
         try {
           const res = await fetch(`/api/v1/dashboard/${taskId}`);
@@ -92,6 +133,8 @@
           const data = await res.json();
           loadingEl.classList.add('hidden');
           chartsEl.classList.remove('hidden');
+          
+          updateSummaryCards(data);
           renderCharts(data);
           
         } catch (err) {
@@ -100,25 +143,39 @@
         }
       }
 
+      function updateSummaryCards(data) {
+        // Note: FastAPI returns snake_case, JS standard is camelCase. We access via snake_case here.
+        document.getElementById('total-expenses').innerText = formatCurrency(data.total_expenses);
+        document.getElementById('total-income').innerText = formatCurrency(data.total_income);
+        document.getElementById('savings-rate').innerText = `${(data.savings_rate * 100).toFixed(1)}%`;
+        document.getElementById('health-score').innerHTML = `${data.health_score} <span class="text-sm text-gray-500">/100</span>`;
+      }
+
       function renderCharts(data) {
         // Global Chart Defaults for Dark Theme
         Chart.defaults.color = '#9CA3AF';
         Chart.defaults.borderColor = '#1F2937';
 
-        // 1. PIE CHART
+        // 1. PIE CHART (Categories)
         new Chart(document.getElementById('pieChart'), {
           type: 'doughnut',
           data: {
             labels: data.pie_chart.map(c => c.category),
             datasets: [{
               data: data.pie_chart.map(c => c.total_amount),
-              backgroundColor: ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1']
+              backgroundColor: ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6']
             }]
           },
-          options: { responsive: true, maintainAspectRatio: false }
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { padding: 15 } }
+            }
+          }
         });
 
-        // 2. LINE CHART
+        // 2. LINE CHART (Monthly Trend)
         new Chart(document.getElementById('lineChart'), {
           type: 'line',
           data: {
@@ -142,36 +199,70 @@
               }
             ]
           },
-          options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { y: { beginAtZero: true } } 
+          }
         });
 
-        // 3. BAR CHART
+        // 3. BAR CHART (Top 10 Expenses - Horizontal)
         const barData = data.bar_chart.map(e => ({
-          // Truncate long descriptions for cleaner x-axis
-          label: e.description.length > 20 ? e.description.substring(0, 20) + '...' : e.description,
+          // Clean up date string from Python datetime format
+          label: e.description.length > 25 ? e.description.substring(0, 25) + '...' : e.description,
           amount: e.debit
-        })).reverse(); // Reverse so highest is at the top
+        })).reverse(); 
 
         new Chart(document.getElementById('barChart'), {
           type: 'bar',
           data: {
             labels: barData.map(e => e.label),
             datasets: [{
-              label: 'Amount ($)',
+              label: 'Amount',
               data: barData.map(e => e.amount),
-              backgroundColor: '#3B82F6',
+              backgroundColor: '#EF4444',
               borderRadius: 4
             }]
           },
           options: { 
             responsive: true, 
             maintainAspectRatio: false, 
-            indexAxis: 'y', // Makes it a horizontal bar chart which is better for long text labels
-            scales: { x: { beginAtZero: true } } 
+            indexAxis: 'y', 
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { callback: value => formatCurrency(value) } } } 
           }
         });
+
+        // 4. MERCHANT BAR CHART (Top Merchants - Horizontal)
+        if (data.top_merchants && data.top_merchants.length > 0) {
+          const merchants = data.top_merchants.map(m => 
+            m.description.length > 25 ? m.description.substring(0, 25) + '...' : m.description
+          ).reverse();
+          const amounts = data.top_merchants.map(m => m.total_spent).reverse();
+
+          new Chart(document.getElementById('merchantChart'), {
+            type: 'bar',
+            data: {
+              labels: merchants,
+              datasets: [{
+                label: 'Total Spend',
+                data: amounts,
+                backgroundColor: '#F59E0B', // Amber color for merchants
+                borderRadius: 4
+              }]
+            },
+            options: { 
+              responsive: true, 
+              maintainAspectRatio: false, 
+              indexAxis: 'y',
+              plugins: { legend: { display: false } },
+              scales: { x: { beginAtZero: true, ticks: { callback: value => formatCurrency(value) } } } 
+            }
+          });
+        }
       }
 
+      // Initialize dashboard on load
       loadDashboard();
     </script>
   </body>
